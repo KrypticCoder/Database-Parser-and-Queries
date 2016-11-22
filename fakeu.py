@@ -2,9 +2,7 @@
 
 import sys # command line arguement (specify excel file to read at command line)
 import psycopg2 # Operate on sql database
-import csv # needed to convert csv files to xlsx
-import openpyxl
-from openpyxl import load_workbook # Read data from excel file
+import csv # needed to read csv files
 
 fakeUDict = {'Course': ('CID', 'TERM', 'SUBJ', 'SEC', 'UNITS'), 
 			'Meeting': ('INSTRUCTOR', 'TYPE', 'DAY', 'TIME', 'BUILD', 'ROOM'),
@@ -18,8 +16,7 @@ def initialize():
 
 	con = connect()
 	cursor = con.cursor()
-	cursor.execute('''
-	CREATE TABLE IF NOT EXISTS Course(
+	cursor.execute('''CREATE TABLE IF NOT EXISTS Course(
 						CID INTEGER NOT NULL PRIMARY KEY,
                     	TERM INTEGER NOT NULL,
                     	SUBJ CHAR(3) NOT NULL,
@@ -78,41 +75,24 @@ def addValue(table, values):
     con.close()
 
 def readCSV(ifilepath):
-	wb_write = openpyxl.Workbook()
-	ws_write = wb_write.active
-
-	# Get the filename + extension
-	filenameFull = ifilepath.rsplit('/', 1)[1]
-	# Get filename
-	filename = filenameFull.split('.')[0]
-	print filename
-
-	try:
-		csvfile = open(ifilepath, 'rb')
-		reader = csv.reader(csvfile, delimiter=':')
-		for row in reader:
-			ws_write.append(row)
-		newPath = './Grades_converted/' + str(filename) + '.xlsx'
-		wb_write.save(newPath)
-	except ValueError:
-		sys.exit("Error: Could not create new xlsx file from csv.")
-	finally:
-		csvfile.close()
-
-	try:
-		wb_read = load_workbook(newPath, read_only=True)
-		ws_read = wb_read.active
-	except ValueError:
-		sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
-
 	count = 0
 
-	for row in ws_read.iter_rows(row_offset=1):
-		if count == 5:
-			break;
-		else:
-			print(row)
-			count += 1
+	try:
+		csvfile = open(ifilepath)
+		reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+		for row in reader:
+			if count == 5:
+				break;
+			else:
+				record = (', '.join(row)).split(',')
+				for i in range(0, len(record) - 1):
+					attr = record[i].strip('"')
+					print(attr)
+				count += 1
+		csvfile.close()
+	except ValueError:
+		sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
+		
 
 def main():
 	ifilepath = str(sys.argv[1])
