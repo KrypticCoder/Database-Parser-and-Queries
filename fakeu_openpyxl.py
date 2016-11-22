@@ -10,7 +10,7 @@ fakeUDict = {'Course': ('CID', 'TERM', 'SUBJ', 'SEC', 'UNITS'),
 
 def connect():
     # Connect to the PostgreSQL database.  Returns a database connection.
-    return psycopg2.connect("dbname=fakeu")
+	return psycopg2.connect("dbname=fakeu")
 
 def initialize():
 
@@ -19,11 +19,11 @@ def initialize():
 	cursor.execute('''
 	CREATE TABLE IF NOT EXISTS Course(
 						CID INTEGER NOT NULL PRIMARY KEY,
-                    	TERM INTEGER NOT NULL,
-                    	SUBJ CHAR(3) NOT NULL,
-                    	SEC SMALLINT NOT NULL,
-                    	UNITS SMALLINT NOT NULL			--"1.000 - 5.000"
-                 );
+						TERM INTEGER NOT NULL,
+						SUBJ CHAR(3) NOT NULL,
+						SEC SMALLINT NOT NULL,
+						UNITS SMALLINT NOT NULL			--"1.000 - 5.000"
+					);
 
 
 	CREATE TABLE IF NOT EXISTS Meeting(
@@ -34,7 +34,7 @@ def initialize():
 						BUILD CHAR(3),
 						ROOM SMALLINT,
 						PRIMARY KEY (INSTRUCTOR, ROOM)
-                 );
+					;
 
 
 	CREATE TABLE IF NOT EXISTS Student(
@@ -49,7 +49,7 @@ def initialize():
 						GRADE VARCHAR(2),
 						STATUS CHAR(2),
 						EMAIL VARCHAR(40) 
-				 ); 
+				); 
 
 	''')
 
@@ -62,47 +62,41 @@ def get_attr(table):
 
 
 def addValue(table, values):
-    con = connect()
-    cursor = con.cursor()
-    attributes = get_attr(table)
-    
-    query_raw = 'INSERT INTO {}{} VALUES{}'.format(table, attributes, values)
-    # strips the string of attribute single quotes but leaves values single quotes
-    query = query_raw.replace("'", "", (len(attributes) * 2))
-    # print(query_raw)
-    print(query)
-    cursor.execute(query)
-    con.commit()
-    con.close()
+	con = connect()
+	cursor = con.cursor()
+	attributes = get_attr(table)
+
+	query_raw = 'INSERT INTO {}{} VALUES{}'.format(table, attributes, values)
+	# strips the string of attribute single quotes but leaves values single quotes
+	query = query_raw.replace("'", "", (len(attributes) * 2))
+	# print(query_raw)
+	print(query)
+	cursor.execute(query)
+	con.commit()
+	con.close()	
 
 def readCSV(ifilepath):
-	# Get the filename + extension
-	filenameFull = ifilepath.rsplit('/', 1)[1]
-	# Get filename
-	filename = filenameFull.split('.')[0]
-	print filename
+	# # Get the filename + extension
+	# filenameFull = ifilepath.rsplit('/', 1)[1]
+	# # Get filename
+	# filename = filenameFull.split('.')[0]
+	# print filename
 
-	count = 0
+	# count = 0
 
-	with open(ifilepath, 'rb') as csvfile:
-		reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-		for row in reader:
-			if count = 5:
-				break
-			else:
-				print(', '.join(row))
-				count += 1
+	# with open(ifilepath, 'rb') as csvfile:
+	# 	reader = csv.reader(csvfile, delimiter=' ')
+	# 	for row in reader:
+	# 		if count = 5:
+	# 			break
+	# 		else:
+	# 			print(', '.join(row))
+	# 			count += 1
 
 def main():
 	ifilepath = str(sys.argv[1])
 
 	initialize()
-	readCSV(ifilepath)
-
- 	#for each row in file:
- 	#addValue('Course', (2, 'fall', 'databases', 5, 4))
-	
-
- 	# terminate()
+	#readCSV(ifilepath)
 
 if __name__ == '__main__': main()

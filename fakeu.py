@@ -88,7 +88,7 @@ def readCSV(ifilepath):
 	print filename
 
 	try:
-		with open(ifilepath, 'rb') as csvfile:
+		csvfile = open(ifilepath, 'rb')
 		reader = csv.reader(csvfile, delimiter=':')
 		for row in reader:
 			ws_write.append(row)
