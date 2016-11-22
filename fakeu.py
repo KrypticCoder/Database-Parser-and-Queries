@@ -1,6 +1,10 @@
-# Bradley Singer 997990414, Dimitri Vasilev
+# Bradley Singer 997990414, Dimitar Vasilev 999307063
 
-import psycopg2
+import sys # command line arguement (specify excel file to read at command line)
+import psycopg2 # Operate on sql database
+import csv # needed to convert csv files to xlsx
+import openpyxl
+from openpyxl import load_workbook # Read data from excel file
 
 fakeUDict = {'Course': ('CID', 'TERM', 'SUBJ', 'SEC', 'UNITS'), 
 			'Meeting': ('INSTRUCTOR', 'TYPE', 'DAY', 'TIME', 'BUILD', 'ROOM'),
@@ -17,36 +21,36 @@ def initialize():
 	cursor.execute('''
 	CREATE TABLE IF NOT EXISTS Course(
 						CID INTEGER NOT NULL PRIMARY KEY,
-                    	TERM VARCHAR(6) NOT NULL, -- Winter, Spring, Summer, Fall
-                    	SUBJ VARCHAR(20) NOT NULL,
+                    	TERM INTEGER NOT NULL,
+                    	SUBJ CHAR(3) NOT NULL,
                     	SEC SMALLINT NOT NULL,
-                    	UNITS SMALLINT NOT NULL
+                    	UNITS SMALLINT NOT NULL			--"1.000 - 5.000"
                  );
 
 
 	CREATE TABLE IF NOT EXISTS Meeting(
-						INSTRUCTOR VARCHAR(20) NOT NULL,
-						TYPE VARCHAR(20) NOT NULL,
-						DAY VARCHAR(9) NOT NULL,
-						"TIME" TIME NOT NULL,
-						BUILD VARCHAR(20) NOT NULL,
-						ROOM SMALLINT NOT NULL,
+						INSTRUCTOR VARCHAR(30),			--"Last name, first name"
+						TYPE VARCHAR(20),
+						DAY VARCHAR(7), 				--"At most, SMTWRFS"
+						"TIME" TIME,					--"9:00 AM - 9:50 AM"
+						BUILD CHAR(3),
+						ROOM SMALLINT,
 						PRIMARY KEY (INSTRUCTOR, ROOM)
                  );
 
 
 	CREATE TABLE IF NOT EXISTS Student(
-						SID INTEGER NOT NULL PRIMARY KEY,
-						SEAT SMALLINT NOT NULL,
-						SURNAME VARCHAR(20) NOT NULL,
-						PREFNAME VARCHAR(20) NOT NULL,
-						LEVEL SMALLINT NOT NULL,
-						UNITS SMALLINT NOT NULL,
-						CLASS VARCHAR(20) NOT NULL,
-						MAJOR VARCHAR(20) NOT NULL,
-						GRADE SMALLINT NOT NULL,
-						STATUS VARCHAR(20) NOT NULL,
-						EMAIL VARCHAR(40) NOT NULL
+						SEAT SMALLINT,
+						SID INTEGER PRIMARY KEY,
+						SURNAME VARCHAR(20),
+						PREFNAME VARCHAR(20),
+						LEVEL CHAR(2),
+						UNITS SMALLINT,
+						CLASS CHAR(2),
+						MAJOR CHAR(4),
+						GRADE VARCHAR(2),
+						STATUS CHAR(2),
+						EMAIL VARCHAR(40) 
 				 ); 
 
 	''')
@@ -59,25 +63,65 @@ def get_attr(table):
 	return fakeUDict[table]
 
 
-def addValues(table, values):
+def addValue(table, values):
     con = connect()
     cursor = con.cursor()
     attributes = get_attr(table)
     
     query_raw = 'INSERT INTO {}{} VALUES{}'.format(table, attributes, values)
+    # strips the string of attribute single quotes but leaves values single quotes
     query = query_raw.replace("'", "", (len(attributes) * 2))
     # print(query_raw)
-    # print(query)
+    print(query)
     cursor.execute(query)
     con.commit()
     con.close()
 
+def readCSV(ifilepath):
+	wb_write = openpyxl.Workbook()
+	ws_write = wb_write.active
+
+	# Get the filename + extension
+	filenameFull = ifilepath.rsplit('/', 1)[1]
+	# Get filename
+	filename = filenameFull.split('.')[0]
+	print filename
+
+	try:
+		with open(ifilepath, 'rb') as csvfile:
+		reader = csv.reader(csvfile, delimiter=':')
+		for row in reader:
+			ws_write.append(row)
+		newPath = './Grades_converted/' + str(filename) + '.xlsx'
+		wb_write.save(newPath)
+	except ValueError:
+		sys.exit("Error: Could not create new xlsx file from csv.")
+	finally:
+		csvfile.close()
+
+	try:
+		wb_read = load_workbook(newPath, read_only=True)
+		ws_read = wb_read.active
+	except ValueError:
+		sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
+
+	count = 0
+
+	for row in ws_read.iter_rows(row_offset=1):
+		if count == 5:
+			break;
+		else:
+			print(row)
+			count += 1
 
 def main():
+	ifilepath = str(sys.argv[1])
+
  	initialize()
- 	#readfile
+ 	readCSV(ifilepath)
+
  	#for each row in file:
- 	addValues('Course', (1, 'fall', 'databases', 5, 4))
+ 	#addValue('Course', (2, 'fall', 'databases', 5, 4))
 	
 
  	# terminate()
