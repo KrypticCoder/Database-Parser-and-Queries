@@ -70,8 +70,8 @@ def addValue(table, values):
 	cursor = con.cursor()
 	inserts = ""
 	attributes = get_attr(table)
-	print("asdfasdfasdf", str(attributes).replace("'", '"').replace("'", ""))
-	print("values", values)
+	#print("asdfasdfasdf", str(attributes).replace("'", '"').replace("'", ""))
+	#print("values", values)
 	for tup in values:
 		inserts += str(tup) + ','
 	inserts = inserts.strip(',')
@@ -80,7 +80,7 @@ def addValue(table, values):
 	# strips the string of attribute single quotes but leaves values single quotes
 	query = query_raw2.replace("'", "", (len(attributes) * 2))
 	# print(query_raw)
-	print(query)
+	#print(query)
 	try:
 		cursor.execute(query_raw2)
 		con.commit()
@@ -92,7 +92,7 @@ def addValue(table, values):
 
 
 def find_next(s, idx):
-	print len(idtable)
+	#print len(idtable)
 	for i in range(idx, len(idtable) - 1):
 		next = idx + 1
 		if (next < len(idtable) - 1 and idtable[i] == s):
@@ -103,32 +103,33 @@ def find_next(s, idx):
 
 def parseResults():
 	count = 0
+	print("Adding values to db...")
 	for val in idtable:
-		print("val", val)
-		print("count", count)
+		#print("val", val)
+		#print("count", count)
 		if val == 0:
 			count = count + 1
 			continue
 		elif val == 'c':
 			nextAlpha = find_next('m', count)
 			if(nextAlpha):
-				print('CnextAlpha', nextAlpha)
-				print(tuple(all_tuples[count + 1:nextAlpha-1]))
+				#print('CnextAlpha', nextAlpha)
+				#print(tuple(all_tuples[count + 1:nextAlpha-1]))
 				addValue('Course', all_tuples[count + 1:nextAlpha-1])
 		elif val == 'm':
 			nextAlpha = find_next('s', count)
 			if(nextAlpha):
-				print('MnextAlpha', nextAlpha)
+				#print('MnextAlpha', nextAlpha)
 				#print(all_tuples[count:nextAlpha-1])
 				addValue('Meeting', all_tuples[count + 1:nextAlpha-1])
 		elif val == 's':
 			nextAlpha = find_next('c', count)
 			if(nextAlpha):
-				print('SnextAlpha', nextAlpha)
+				#print('SnextAlpha', nextAlpha)
 				#print(all_tuples[count:nextAlpha-1])
 				addValue('Student', all_tuples[count + 1:nextAlpha -1])
 		count = count + 1
-
+	print("Finished adding values.")
 def readCSV(ifilepath):
 	try:
 		count = 0
@@ -154,12 +155,12 @@ def readCSV(ifilepath):
 				#print('s')
 			else: 
 				idtable.append(0)
-				#print(0)
+
 			count = count + 1
 		csvfile.close()
 	except ValueError:
 		sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
-	print(idtable)
+	#print(idtable)
 	parseResults()
 		
 def deinitialize():
