@@ -11,6 +11,8 @@ fakeUDict = {'Course': ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"),
 
 all_tuples = []
 idtable = []
+set_tuples = []
+
 def connect():
     # Connect to the PostgreSQL database.  Returns a database connection.
     return psycopg2.connect("dbname=fakeu")
@@ -101,35 +103,51 @@ def find_next(s, idx):
 
 
 
+def addUnique(table, tuples_to_add):
+	add_unique_tuples = []
+	for tup in tuples_to_add:
+		if tup not in set_tuples:
+			add_unique_tuples.append(tup)
+			set_tuples.append(tup)
+
+
+	addValue(table, add_unique_tuples)
+
+
 def parseResults():
 	count = 0
 	print("Adding values to db...")
 	for val in idtable:
 		#print("val", val)
 		#print("count", count)
+		
 		if val == 0:
 			count = count + 1
 			continue
 		elif val == 'c':
 			nextAlpha = find_next('m', count)
 			if(nextAlpha):
-				#print('CnextAlpha', nextAlpha)
-				#print(tuple(all_tuples[count + 1:nextAlpha-1]))
-				addValue('Course', all_tuples[count + 1:nextAlpha-1])
+				tuples_to_add = all_tuples[count + 1:nextAlpha-1]
+				addUnique('Course', tuples_to_add)
+
 		elif val == 'm':
 			nextAlpha = find_next('s', count)
 			if(nextAlpha):
 				#print('MnextAlpha', nextAlpha)
 				#print(all_tuples[count:nextAlpha-1])
-				addValue('Meeting', all_tuples[count + 1:nextAlpha-1])
+				tuples_to_add = all_tuples[count + 1:nextAlpha-1]
+				addUnique('Meeting', tuples_to_add)
 		elif val == 's':
 			nextAlpha = find_next('c', count)
 			if(nextAlpha):
 				#print('SnextAlpha', nextAlpha)
 				#print(all_tuples[count:nextAlpha-1])
-				addValue('Student', all_tuples[count + 1:nextAlpha -1])
+				tuples_to_add = all_tuples[count + 1:nextAlpha-1]
+				addUnique('Student', tuples_to_add)
 		count = count + 1
 	print("Finished adding values.")
+
+
 def readCSV(ifilepath):
 	try:
 		count = 0
