@@ -161,11 +161,10 @@ def readCSV(ifilepath):
             row = []
             attr_count = 0
             for attr in newrow:
-                attr_count += 1
+                
                 attr = attr.replace('"','')
                 # attr = attr.replace('(', '')
                 # attr = attr.replace(')', '')
-
                 if courseTableReached == True:
                     if '.000' in attr:
                         attr = attr.replace('.000', '')
@@ -179,7 +178,7 @@ def readCSV(ifilepath):
                         row.append(attr)
                     else: 
                         row.append(attr)
-
+                    attr_count += 1
                 else:
                     row.append(attr)
             
