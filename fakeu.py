@@ -80,16 +80,35 @@ def addValue(table, values):
     #print("asdfasdfasdf", str(attributes).replace("'", '"').replace("'", ""))
     #print("values", values)
     for tup in values:
+        print('Tuple: ', tup)
+        if str(tup).find('"') > 0:
+            begin_dq_index = 0
+            end_dq_index = 0
+            tup_str = str(tup)
+            print('Got here!!!!!!!!!!!!!!')
+            # while begin_dq_index < (len(tup_str) - 1):
+            begin_dq_index = tup_str.find('"', begin_dq_index)
+            end_dq_index = tup_str.find('"', begin_dq_index)
+            apos_index = tup_str.find("'", begin_dq_index, end_dq_index)
+            tup_list = list(tup_str)
+            tup_list[apos_index] = "''"
+            tup = ''.join(tup_list)
+            print('########################################' + tup)
+
+            begin_dq_index = end_dq_index + 1
         inserts += str(tup) + ','
     inserts = inserts.strip(',')
     # query_raw = 'INSERT INTO {}{} VALUES{}'.format(table, str(attributes).replace("'", '"'), inserts)
-    query_raw2 = "INSERT INTO %s%s VALUES %s" % (table, str(attributes).replace("'", ''), inserts)
+    query = '''INSERT INTO %s%s VALUES %s''' % (table, str(attributes).replace("'", ''), inserts)
     # strips the string of attribute single quotes but leaves values single quotes
-    query = query_raw2.replace("'", "", (len(attributes) * 2))
-    print(query)
+
+    query = query.replace('"', '')
+
+    # print(query)
+
     #print(query)
     # try:
-    cursor.execute(query_raw2)
+    cursor.execute(query)
     con.commit()
     con.close()
     # except: 
@@ -133,13 +152,13 @@ def parseResults():
             count += 1
             continue
         elif val == 'c' or val == 'm' or val == 's':
-            print("count", count)
+            # print("count", count)
             nextAlpha = find_next('e', count)
-            print("nextAlpha", nextAlpha)
+            # print("nextAlpha", nextAlpha)
             if nextAlpha:
                 check = check_if_same(count + 1, nextAlpha)
                 if check:
-                    print("check is true")
+                    # print("check is true")
                     count = nextAlpha
                     continue
                 else:
@@ -215,7 +234,7 @@ def readCSV(ifilepath):
         csvfile.close()
     except ValueError:
         sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
-    print(all_tuples)
+    # print(all_tuples)
     parseResults()
         
 def deinitialize():
