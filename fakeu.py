@@ -5,7 +5,11 @@ import sys # command line arguement (specify excel file to read at command line)
 import psycopg2 # Operate on sql database
 import csv # needed to read csv files
 
-fakeUDict = {'Course': ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITSMIN", "UNITSMAX"), 
+dbDict = {'Course': ('CID', 'TERM', 'SUBJ', 'CRSE', 'SEC', 'UNITSMIN', 'UNITSMAX'), 
+            'Meeting': ('INSTRUCTORS', 'TYPE', 'DAYS', 'TIME', 'BUILD', 'ROOM'),
+            'Student': ('SEAT','SID','SURNAME', 'PREFNAME', 'LEVEL', 'UNITS', 'CLASS', 'MAJOR', 'GRADE', 'STATUS', 'EMAIL') }
+
+fileDict = {'Course': ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"), 
             'Meeting': ("INSTRUCTOR(S)", "TYPE", "DAYS", "TIME", "BUILD", "ROOM"),
             'Student': ("SEAT","SID","SURNAME", "PREFNAME", "LEVEL", "UNITS", "CLASS", "MAJOR", "GRADE", "STATUS", "EMAIL") }
 
@@ -22,39 +26,39 @@ def initialize():
     con = connect()
     cursor = con.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS Course(
-                        "CID" INTEGER PRIMARY KEY,
-                        "TERM" INTEGER,
-                        "SUBJ" VARCHAR(50),
-                        "CRSE" INTEGER,
-                        "SEC" SMALLINT,
-                        "UNITSMIN" INTEGER,
-                        "UNITSMAX" INTEGER
+                        CID INTEGER PRIMARY KEY,
+                        TERM INTEGER,
+                        SUBJ VARCHAR(50),
+                        CRSE INTEGER,
+                        SEC SMALLINT,
+                        UNITSMIN INTEGER,
+                        UNITSMAX INTEGER
                  );
 
 
     CREATE TABLE IF NOT EXISTS Meeting(
-                        "INSTRUCTOR(S)" VARCHAR(30),            --"Last name, first name"
-                        "TYPE" VARCHAR(50),
-                        "DAYS" VARCHAR(50),                 --"At most, SMTWRFS"
-                        "TIME" VARCHAR(50),                 
-                        "BUILD" VARCHAR(50),
-                        "ROOM" VARCHAR(5),
-                        PRIMARY KEY ("INSTRUCTOR(S)", "ROOM")
+                        INSTRUCTORS VARCHAR(30),            --Last name, first name
+                        TYPE VARCHAR(50),
+                        DAYS VARCHAR(50),                 --At most, SMTWRFS
+                        TIME VARCHAR(50),                 
+                        BUILD VARCHAR(50),
+                        ROOM VARCHAR(5)
+                        --PRIMARY KEY (INSTRUCTORS, ROOM)
                  );
 
 
     CREATE TABLE IF NOT EXISTS Student(
-                        "SEAT" SMALLINT,
-                        "SID" INTEGER,
-                        "SURNAME" VARCHAR(50),
-                        "PREFNAME" VARCHAR(50),
-                        "LEVEL" VARCHAR(50),
-                        "UNITS" SMALLINT,
-                        "CLASS" VARCHAR(50),
-                        "MAJOR" VARCHAR(50),
-                        "GRADE" VARCHAR(10),
-                        "STATUS" VARCHAR(50),
-                        "EMAIL" VARCHAR(50) 
+                        SEAT SMALLINT,
+                        SID INTEGER,
+                        SURNAME VARCHAR(50),
+                        PREFNAME VARCHAR(50),
+                        LEVEL VARCHAR(50),
+                        UNITS SMALLINT,
+                        CLASS VARCHAR(50),
+                        MAJOR VARCHAR(50),
+                        GRADE VARCHAR(10),
+                        STATUS VARCHAR(50),
+                        EMAIL VARCHAR(50) 
                  ); 
 
     ''')
@@ -65,7 +69,7 @@ def initialize():
 
 
 def get_attr(table):
-    return fakeUDict[table]
+    return dbDict[table]
 
 
 def addValue(table, values):
@@ -79,19 +83,19 @@ def addValue(table, values):
         inserts += str(tup) + ','
     inserts = inserts.strip(',')
     # query_raw = 'INSERT INTO {}{} VALUES{}'.format(table, str(attributes).replace("'", '"'), inserts)
-    query_raw2 = "INSERT INTO %s%s VALUES %s" % (table, str(attributes).replace("'", '"'), inserts)
+    query_raw2 = "INSERT INTO %s%s VALUES %s" % (table, str(attributes).replace("'", ''), inserts)
     # strips the string of attribute single quotes but leaves values single quotes
     query = query_raw2.replace("'", "", (len(attributes) * 2))
-    print(query_raw2)
+    print(query)
     #print(query)
-    try:
-        cursor.execute(query_raw2)
-        con.commit()
-        con.close()
-    except: 
-        con.commit()
-        con.close()
-        return
+    # try:
+    cursor.execute(query_raw2)
+    con.commit()
+    con.close()
+    # except: 
+    #     con.commit()
+    #     con.close()
+    #     return
 
 
 def find_next(s, idx):
@@ -161,11 +165,13 @@ def readCSV(ifilepath):
             row = []
             attr_count = 0
 
-            if newrow == fakeUDict['Meeting'] or newrow == fakeUDict['Student']:
+            if newrow == fileDict['Meeting'] or newrow == fileDict['Student']:
                 courseTableReached = False
 
             for attr in newrow:
                 attr = attr.replace('"','')
+                attr = attr.replace('(', '')
+                attr = attr.replace(')', '')
 
                 if courseTableReached == True:
                     if '.000' in attr:
@@ -183,16 +189,17 @@ def readCSV(ifilepath):
                     attr_count += 1
                 else:
                     row.append(attr)
-            
+
             tup_row = tuple(row)
             all_tuples.append(tup_row)
-            if tup_row == ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"):
+
+            if tup_row == fileDict['Course']:
                 #print('c')
                 idtable.append('c')
-            elif tup_row == ("INSTRUCTOR(S)", "TYPE", "DAYS", "TIME", "BUILD", "ROOM"):
+            elif tup_row == dbDict['Meeting']:
                 idtable.append('m')
                 #print("m")
-            elif tup_row == ("SEAT","SID","SURNAME", "PREFNAME", "LEVEL", "UNITS", "CLASS", "MAJOR", "GRADE", "STATUS", "EMAIL"):
+            elif tup_row == fileDict['Student']:
                 idtable.append('s')
                 #print('s')
             elif tup_row == ('',):
@@ -201,14 +208,14 @@ def readCSV(ifilepath):
             else: 
                 idtable.append(0)
 
-            if newrow == ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"):
+            if newrow == fileDict['Course']:
                 courseTableReached = True
 
             count += 1
         csvfile.close()
     except ValueError:
         sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
-    print(idtable)
+    print(all_tuples)
     parseResults()
         
 def deinitialize():
