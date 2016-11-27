@@ -5,7 +5,7 @@ import sys # command line arguement (specify excel file to read at command line)
 import psycopg2 # Operate on sql database
 import csv # needed to read csv files
 
-fakeUDict = {'Course': ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"), 
+fakeUDict = {'Course': ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITSMIN", "UNITSMAX"), 
             'Meeting': ("INSTRUCTOR(S)", "TYPE", "DAYS", "TIME", "BUILD", "ROOM"),
             'Student': ("SEAT","SID","SURNAME", "PREFNAME", "LEVEL", "UNITS", "CLASS", "MAJOR", "GRADE", "STATUS", "EMAIL") }
 
@@ -22,23 +22,23 @@ def initialize():
     con = connect()
     cursor = con.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS Course(
-                        "CID" INTEGER NOT NULL PRIMARY KEY,
-                        "TERM" INTEGER NOT NULL,
-                        "SUBJ" VARCHAR(30) NOT NULL,
-                        "CRSE" INTEGER NOT NULL,
-                        "SEC" SMALLINT NOT NULL,
-                        "UNITSMIN" INTEGER NOT NULL,
-                        "UNITSMAX" INTEGER NOT NULL
+                        "CID" INTEGER PRIMARY KEY,
+                        "TERM" INTEGER,
+                        "SUBJ" VARCHAR(50),
+                        "CRSE" INTEGER,
+                        "SEC" SMALLINT,
+                        "UNITSMIN" INTEGER,
+                        "UNITSMAX" INTEGER
                  );
 
 
     CREATE TABLE IF NOT EXISTS Meeting(
                         "INSTRUCTOR(S)" VARCHAR(30),            --"Last name, first name"
-                        "TYPE" VARCHAR(20),
-                        "DAYS" VARCHAR(20),                 --"At most, SMTWRFS"
-                        "TIME" VARCHAR(30),                 
-                        "BUILD" VARCHAR(30),
-                        "ROOM" SMALLINT,
+                        "TYPE" VARCHAR(50),
+                        "DAYS" VARCHAR(50),                 --"At most, SMTWRFS"
+                        "TIME" VARCHAR(50),                 
+                        "BUILD" VARCHAR(50),
+                        "ROOM" VARCHAR(5),
                         PRIMARY KEY ("INSTRUCTOR(S)", "ROOM")
                  );
 
@@ -46,15 +46,15 @@ def initialize():
     CREATE TABLE IF NOT EXISTS Student(
                         "SEAT" SMALLINT,
                         "SID" INTEGER,
-                        "SURNAME" VARCHAR(20),
-                        "PREFNAME" VARCHAR(20),
-                        "LEVEL" VARCHAR(20),
+                        "SURNAME" VARCHAR(50),
+                        "PREFNAME" VARCHAR(50),
+                        "LEVEL" VARCHAR(50),
                         "UNITS" SMALLINT,
-                        "CLASS" VARCHAR(20),
-                        "MAJOR" VARCHAR(20),
-                        "GRADE" VARCHAR(2),
-                        "STATUS" VARCHAR(20),
-                        "EMAIL" VARCHAR(40) 
+                        "CLASS" VARCHAR(50),
+                        "MAJOR" VARCHAR(50),
+                        "GRADE" VARCHAR(10),
+                        "STATUS" VARCHAR(50),
+                        "EMAIL" VARCHAR(50) 
                  ); 
 
     ''')
@@ -82,16 +82,16 @@ def addValue(table, values):
     query_raw2 = "INSERT INTO %s%s VALUES %s" % (table, str(attributes).replace("'", '"'), inserts)
     # strips the string of attribute single quotes but leaves values single quotes
     query = query_raw2.replace("'", "", (len(attributes) * 2))
-    # print(query_raw)
+    print(query_raw2)
     #print(query)
-    # try:
-    cursor.execute(query_raw2)
-    con.commit()
-    con.close()
-    # except: 
-    #     con.commit()
-    #     con.close()
-    #     return
+    try:
+        cursor.execute(query_raw2)
+        con.commit()
+        con.close()
+    except: 
+        con.commit()
+        con.close()
+        return
 
 
 def find_next(s, idx):
@@ -114,6 +114,9 @@ def addUnique(table, tuples_to_add):
 
     addValue(table, add_unique_tuples)
 
+def check_if_same(count, alpha):
+    if count == alpha:
+        return True
 
 def parseResults():
     count = 0
@@ -121,31 +124,29 @@ def parseResults():
     for val in idtable:
         #print("val", val)
         #print("count", count)
-        
-        if val == 0:
-            count = count + 1
+        check = False
+        if val == 0 or val == 'e':
+            count += 1
             continue
-        elif val == 'c':
-            nextAlpha = find_next('m', count)
-            if(nextAlpha):
-                tuples_to_add = all_tuples[count + 1:nextAlpha-1]
-                addUnique('Course', tuples_to_add)
-
-        elif val == 'm':
-            nextAlpha = find_next('s', count)
-            if(nextAlpha):
-                #print('MnextAlpha', nextAlpha)
-                #print(all_tuples[count:nextAlpha-1])
-                tuples_to_add = all_tuples[count + 1:nextAlpha-1]
-                addUnique('Meeting', tuples_to_add)
-        elif val == 's':
-            nextAlpha = find_next('c', count)
-            if(nextAlpha):
-                #print('SnextAlpha', nextAlpha)
-                #print(all_tuples[count:nextAlpha-1])
-                tuples_to_add = all_tuples[count + 1:nextAlpha-1]
-                addUnique('Student', tuples_to_add)
-        count = count + 1
+        elif val == 'c' or val == 'm' or val == 's':
+            print("count", count)
+            nextAlpha = find_next('e', count)
+            print("nextAlpha", nextAlpha)
+            if nextAlpha:
+                check = check_if_same(count + 1, nextAlpha)
+                if check:
+                    print("check is true")
+                    count = nextAlpha
+                    continue
+                else:
+                    tuples_to_add = all_tuples[count + 1: nextAlpha]
+                    if val == 'c':
+                        addUnique('Course', tuples_to_add)
+                    elif val == 'm':
+                        addUnique('Meeting', tuples_to_add)
+                    elif val == 's':
+                        addUnique('Student', tuples_to_add)
+                    count += 1
     print("Finished adding values.")
 
 
@@ -159,6 +160,10 @@ def readCSV(ifilepath):
             newrow = tuple(';'.join(row).strip("'").split(';'))
             row = []
             attr_count = 0
+
+            if newrow == fakeUDict['Meeting'] or newrow == fakeUDict['Student']:
+                courseTableReached = False
+
             for attr in newrow:
                 attr = attr.replace('"','')
 
@@ -181,28 +186,29 @@ def readCSV(ifilepath):
             
             tup_row = tuple(row)
             all_tuples.append(tup_row)
-            if tup_row == fakeUDict['Course']:
+            if tup_row == ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"):
                 #print('c')
                 idtable.append('c')
-            elif tup_row == fakeUDict['Meeting']:
+            elif tup_row == ("INSTRUCTOR(S)", "TYPE", "DAYS", "TIME", "BUILD", "ROOM"):
                 idtable.append('m')
                 #print("m")
-            elif tup_row == fakeUDict['Student']:
+            elif tup_row == ("SEAT","SID","SURNAME", "PREFNAME", "LEVEL", "UNITS", "CLASS", "MAJOR", "GRADE", "STATUS", "EMAIL"):
                 idtable.append('s')
                 #print('s')
+            elif tup_row == ('',):
+                idtable.append('e')
+
             else: 
                 idtable.append(0)
 
-            if newrow == fakeUDict['Course']:
+            if newrow == ("CID", "TERM", "SUBJ", "CRSE", "SEC", "UNITS"):
                 courseTableReached = True
-            elif newrow == fakeUDict['Meeting']:
-                courseTableReached = False
 
             count += 1
         csvfile.close()
     except ValueError:
         sys.exit("Error: Invalid arguement passed. Should be a .csv file.")
-    print(all_tuples)
+    print(idtable)
     parseResults()
         
 def deinitialize():
