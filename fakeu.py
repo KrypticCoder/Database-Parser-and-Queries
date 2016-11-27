@@ -80,23 +80,14 @@ def addValue(table, values):
     #print("asdfasdfasdf", str(attributes).replace("'", '"').replace("'", ""))
     #print("values", values)
     for tup in values:
-        print('Tuple: ', tup)
-        if str(tup).find('"') > 0:
-            begin_dq_index = 0
-            end_dq_index = 0
-            tup_str = str(tup)
-            print('Got here!!!!!!!!!!!!!!')
-            # while begin_dq_index < (len(tup_str) - 1):
-            begin_dq_index = tup_str.find('"', begin_dq_index)
-            end_dq_index = tup_str.find('"', begin_dq_index)
-            apos_index = tup_str.find("'", begin_dq_index, end_dq_index)
-            tup_list = list(tup_str)
-            tup_list[apos_index] = "''"
-            tup = ''.join(tup_list)
-            print('########################################' + tup)
-
-            begin_dq_index = end_dq_index + 1
-        inserts += str(tup) + ','
+        insert_arr = []
+        for attr in tup:
+            attr = attr.strip('"')
+            attr = attr.strip("'")
+            attr = attr.replace("'", "\'\'")
+            insert_arr.append("'" + attr + "'")
+            insert_tup = tuple(insert_arr)
+        inserts += str(insert_tup) + ','
     inserts = inserts.strip(',')
     # query_raw = 'INSERT INTO {}{} VALUES{}'.format(table, str(attributes).replace("'", '"'), inserts)
     query = '''INSERT INTO %s%s VALUES %s''' % (table, str(attributes).replace("'", ''), inserts)
@@ -107,14 +98,14 @@ def addValue(table, values):
     # print(query)
 
     #print(query)
-    # try:
-    cursor.execute(query)
-    con.commit()
-    con.close()
-    # except: 
-    #     con.commit()
-    #     con.close()
-    #     return
+    try:
+        cursor.execute(query)
+        con.commit()
+        con.close()
+    except: 
+        con.commit()
+        con.close()
+        return
 
 
 def find_next(s, idx):
