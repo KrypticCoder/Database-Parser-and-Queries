@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # fakeu
 Homework 4 for ECS165a Databases
 # Authors
@@ -10,7 +9,6 @@ Dimitar Vasilev 999307063
 Special Note: Our program parses through all files in 1-2 minutes on our local machine 
 but it takes 15 - 20 minutes to run on CSIF. I've already rewritten my parser program twice 
 to get it working fast and I don't know how to make it run any faster at this point. 
-
 
 You are designing a database for a university called FakeU. As a trial you have been
 provided grade data from courses for departments ABC and DEF. The grade data is from
@@ -56,4 +54,3 @@ Program | Version
 --- | --- | ---
 Python | 3
 Postgres| 9.6
->>>>>>> e5997c5... Changed formatting. Added README. Removed extraneous files
