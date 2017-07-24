@@ -1,38 +1,11 @@
-# fakeu
-Homework 4 for ECS165a Databases
-# Authors
-Bradley Singer 997990414  
-Dimitar Vasilev 999307063
-=======
-# Homework 4
+# DataBase Parser Program & Queries
 
-Special Note: Our program parses through all files in 1-2 minutes on our local machine 
-but it takes 15 - 20 minutes to run on CSIF. I've already rewritten my parser program twice 
-to get it working fast and I don't know how to make it run any faster at this point. 
-
-You are designing a database for a university called FakeU. As a trial you have been
-provided grade data from courses for departments ABC and DEF. The grade data is from
-Summer of 1989 until Summer of 2012. The data provided is in CSV format, and is only
-as complete as could be made possible. There may be errors, omissions or redundant data
-in the files. FakeU like UC Davis is on a quarter system, however they have recently
-transitioned to a single summer quarter instead of two summer sessions. This has
-corrupted some of their summer data as all summer session classes have now been
-grouped into a single summer quarter term. Each course has a course ID (CID), a term it
-was offered (TERM), a subject (SUBJ), a course number (CRSE), a section (SEC), and
-number of units (UNITS). Within a course there listings of meetings, the instructor of the
-meeting (INSTRUCTOR(S)), meeting type (TYPE), day of meeting (DAYS), time of
-meeting (TIME), meeting building (BUILD), and meeting room (ROOM) are also listed.
-For each student that takes the course there is a student seat (SEAT), a student ID (SID),
-the student’s surname (SURNAME), the student’s preferred name (PREFNAME), the
-student’s (LEVEL), the number of units the student is receiving (UNITS), the student’s
-class standing (CLASS), the student’s major (MAJOR), the grade the student received in
-the course (GRADE), the student’s registration status (STATUS), and the student’s email
-address (EMAIL).
+The following is an assignment for ECS 165A databases course at UC Davis. The specifications are included in 'Homework04.pdf'. In essence, the goal is to insert all of the data in the Grades folder into a local database using Postgres and then run specific queries on the data. 
 
 ## Contributors
 
 Name | Student ID 
---- | --- | ---
+--- | ---
 Bradley Singer | 997990414
 Dimitar Vasilev | 999307063
 
@@ -51,6 +24,6 @@ Dimitar Vasilev | 999307063
 ## Requirements
 
 Program | Version 
---- | --- | ---
+--- | ---
 Python | 3
 Postgres| 9.6
